@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+    <title>Sinoplix | Rekomendasi Film Indonesia Berdasarkan Sinopsis</title>
+    <meta name="description" content="Sistem rekomendasi film cerdas dengan TF-IDF dan Cosine Similarity"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+    <style>
+      * {
+        font-family: "Inter", sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #0b1a2e 0%, #0a1929 100%);
+      }
+      .glass-card {
+        background: rgba(15, 30, 50, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+      .movie-card {
+        transition: all 0.3s ease;
+        background: rgba(16, 36, 64, 0.7);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+      }
+      .movie-card:hover {
+        transform: translateY(-6px);
+        border-color: #3b82f6;
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.5);
+        background: rgba(20, 48, 80, 0.9);
+      }
+      .btn-primary {
+        background: linear-gradient(95deg, #1e3a5f, #2563eb);
+        transition: all 0.2s;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(95deg, #2563eb, #3b82f6);
+        transform: scale(1.02);
+      }
+      .loader {
+        border: 3px solid #e2e8f0;
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 0.8s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      html { scroll-behavior: smooth; }
+      
+      .page-btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        background-color: rgba(31, 41, 55, 0.8);
+        color: #e5e7eb;
+        border: 1px solid #374151;
+        transition: all 0.2s;
+        min-width: 40px;
+        flex-shrink: 0;
+      }
+      .page-btn:hover:not(:disabled) {
+        background-color: #3b82f6;
+        border-color: #2563eb;
+      }
+      .page-btn.active {
+        background-color: #2563eb;
+        color: white;
+        border-color: #1d4ed8;
+      }
+      .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .tagline {
+        font-family: 'Playfair Display', serif;
+      }
+    </style>
+  </head>
+  <body class="text-gray-200">
+    
+    <nav class="fixed top-0 w-full z-50 bg-[#0a1929]/80 backdrop-blur-md border-b border-blue-800/40 shadow-sm">
+      <div class="container mx-auto px-5 py-2 lg:py-4 flex justify-between items-center relative">
+        
+        <div class="flex items-center space-x-2 z-50">
+          <i class="fas fa-clapperboard text-blue-400 text-2xl"></i>
+          <span class="font-bold text-xl tracking-tight">Sino<span class="text-blue-400">plix</span></span>
+        </div>
+
+        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-10 text-sm font-medium">
+          <a href="#home" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-house"></i>Beranda</a>
+          <a href="#rekomendasi" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-wand-magic-sparkles"></i>Rekomendasi</a>
+          <a href="#tentang" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-circle-info"></i>Tentang</a>
+          <a href="#tim" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-users"></i>Tim</a>
+          <a href="#statistik" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-chart-pie"></i>Statistik</a>
+        </div>
+
+        <div class="hidden md:block w-8"></div>
+
+        <button id="menuBtn" class="md:hidden text-white focus:outline-none z-50 relative p-2">
+          <i class="fas fa-bars text-xl transition-all duration-300" id="menuIcon"></i>
+        </button>
+      </div>
+    </nav>
+
+    <div id="mobileBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300"></div>
+
+    <div id="mobileMenu" class="fixed top-20 right-5 w-56 bg-[#0f1e32]/95 backdrop-blur-xl border border-blue-500/30 rounded-2xl z-50 hidden flex-col py-2 shadow-2xl opacity-0 transition-all duration-300 scale-95 origin-top-right">
+        <a href="#home" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-house mb-1"></i>Beranda</a>
+        <a href="#rekomendasi" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-brain mb-1"></i>Rekomendasi</a>
+        <a href="#tentang" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-circle-info mb-1"></i>Tentang</a>
+        <a href="#tim" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-users mb-1"></i>Tim</a>
+        <a href="#statistik" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 transition-all"><i class="fas fa-chart-pie mb-1"></i>Statistik</a>
+
+    </div>
+
+    <section id="home" class="pt-28 md:pt-36 pb-16 md:pb-24 px-5">
+      <div class="container mx-auto max-w-5xl text-center">
+        <div class="inline-block px-4 py-1.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold mb-5 backdrop-blur-sm"><i class="fas fa-robot mr-1"></i>Sistem Rekomendasi Film • Kelompok 2
+        </div>
+        <h1 class="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-blue-300 via-white to-blue-400 bg-clip-text text-transparent leading-tight">
+          Temukan Film Indonesia<br />Berdasarkan Cerita yang Kamu Sukai
+        </h1>
+        <p class="tagline text-gray-300 text-lg md:text-xl mt-6 max-w-2xl mx-auto">
+          "Setiap film punya cerita, setiap sinopsis punya makna. Temukan film yang sejalan dengan duniamu"
+        </p>
+        <div class="mt-9 flex flex-wrap justify-center gap-5">
+          <a href="#rekomendasi" class="btn-primary px-7 py-3 rounded-full font-semibold shadow-xl flex items-center gap-2">
+            <i class="fas fa-wand-magic-sparkles"></i> Coba Sekarang
+          </a>
+          <a href="#tentang" class="border border-blue-400/50 px-7 py-3 rounded-full font-semibold hover:bg-blue-500/10 transition">
+            Pelajari Algoritma
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="rekomendasi" class="py-16 md:py-20 px-5 bg-black/10 backdrop-blur-sm border-t border-blue-900/30">
+      <div class="container mx-auto max-w-4xl">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold inline-block border-b-4 border-blue-500 pb-2">
+            Rekomendasi Film
+          </h2>
+          <p class="text-gray-300 mt-4">
+            Isi sinopsis singkat, lalu ketik genre dan pilih tahun (opsional).
+          </p>
+        </div>
+
+        <div class="glass-card rounded-2xl p-6 md:p-8 shadow-xl mb-12">
+          <div class="space-y-5">
+            <div>
+              <label class="block text-sm font-medium text-blue-200 mb-2"><i class="fas fa-pen-fancy"></i> Sinopsis / Cerita</label>
+              <textarea id="synopsisInput" rows="4" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Seorang detektif cerdas menyelidiki kasus misterius di kota metropolitan..."></textarea>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-blue-200 mb-2"><i class="fas fa-tags"></i> Genre (Bisa Lebih dari 1)</label>
+                <input type="text" id="genreInput" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Action, Drama, Comedy">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-blue-200 mb-2"><i class="fas fa-calendar-alt"></i> Tahun</label>
+                <select id="yearSelect" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-blue-500">
+                  <option value="Semua Tahun">Semua Tahun</option>
+                  {% for year in years %}
+                  <option value="{{ year }}">{{ year }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <button id="recommendBtn" class="btn-primary w-full md:w-auto px-8 py-3 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
+              <i class="fas fa-search"></i> Rekomendasikan Film
+            </button>
+          </div>
+          <p class="text-xs text-gray-400 mt-4 text-center md:text-left">
+            <i class="fas fa-info-circle"></i> Algoritma : TF-IDF dan Cosine Similarity
+          </p>
+        </div>
+
+        <div id="loading" class="hidden loader"></div>
+        <div id="errorMsg" class="hidden text-center text-red-300 bg-red-900/40 p-4 rounded-xl mt-4"></div>
+
+        <div id="resultSection" class="hidden">
+          <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b border-blue-900/50 pb-4">
+            <div>
+                <h3 class="text-2xl font-semibold text-blue-300 flex items-center gap-2">
+                  <i class="fas fa-thumbs-up"></i> Rekomendasi untuk Anda
+                </h3>
+                <p id="resultCount" class="text-sm text-gray-400 mt-1"></p>
+            </div>
+            
+            <div class="flex items-center gap-2 bg-gray-800/80 px-3 py-2 rounded-lg border border-gray-600">
+                <i class="fas fa-sort-amount-down text-blue-400 text-sm"></i>
+                <label class="text-sm text-gray-300 font-medium">Urutkan:</label>
+                <select id="sortDropdown" class="bg-transparent text-sm text-white focus:outline-none cursor-pointer">
+                    <option value="final_score" class="bg-gray-800">Skor Keseluruhan</option>
+                    <option value="similarity" class="bg-gray-800">Paling Mirip (Teks)</option>
+                    <option value="rate" class="bg-gray-800">Rating Tertinggi</option>
+                </select>
+            </div>
+          </div>
+
+          <div id="recommendationsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+          
+          <div id="paginationControls" class="flex justify-center items-center gap-2 mt-10 hidden w-full">
+            <button id="btnPrev" class="page-btn"><i class="fas fa-chevron-left"></i></button>
+            <div id="pageNumbers" class="flex gap-2"></div>
+            <button id="btnNext" class="page-btn"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tentang" class="py-20 px-5 border-t border-blue-900/30">
+      <div class="container mx-auto max-w-5xl">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+              Tentang <span class="text-blue-400">Sinoplix</span>
+            </h2>
+            <p class="text-gray-300 mb-4 leading-relaxed">
+              Sinoplix adalah sistem rekomendasi film cerdas untuk tugas mata
+              kuliah <strong class="text-blue-300">Sistem Cerdas</strong>.
+              Menggunakan pendekatan <strong>Content-Based Filtering</strong> dengan pembobotan dinamis.
+            </p>
+            <ul class="space-y-3 text-gray-200 mb-6">
+              <li class="flex items-start gap-2">
+                <i class="fas fa-align-left text-blue-400 mt-1"></i>
+                <span><strong>Sinopsis pengguna (85%)</strong> – TF‑IDF & Cosine Similarity</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-filter text-blue-400 mt-1"></i>
+                <span><strong>Kecocokan Genre (10%)</strong> – Multi-genre matching score</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fas fa-calendar-alt text-blue-400 mt-1"></i>
+                <span><strong>Kedekatan Tahun (5%)</strong> – Soft distance scoring</span>
+              </li>
+            </ul>
+          </div>
+          <div class="glass-card rounded-2xl p-6 text-center">
+            <i class="fas fa-robot text-5xl text-blue-400 mb-3"></i>
+            <h3 class="text-xl font-semibold mb-2">Bagaimana AI bekerja?</h3>
+            <p class="text-gray-300 text-sm">
+              Sistem akan memproses kalimat sinopsis Anda menjadi vektor, lalu mengukur kecocokannya dengan film yang ada. Algoritma kemudian mengakumulasi skor sinopsis, kecocokan genre, dan kedekatan tahun secara matematis untuk memberikan hasil paling akurat.
+            </p>
+            <div class="mt-5 text-xs text-gray-400">
+              <i class="fas fa-database"></i> Bisa memproses ribuan film dalam hitungan detik
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tim" class="py-16 px-5 bg-black/20 backdrop-blur-sm border-t border-blue-900/30">
+      <div class="container mx-auto max-w-6xl">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold inline-block border-b-4 border-blue-500 pb-2 text-white">
+            Tim Pengembang
+          </h2>
+          <p class="text-gray-400 mt-3 text-sm">Dibalik layar pembuatan sistem cerdas Sinoplix</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+          <div class="glass-card rounded-xl p-5 text-center hover:-translate-y-2 transition-transform duration-300">
+            <div class="w-24 h-24 lg:w-36 lg:h-36 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400/50 mb-3 overflow-hidden">
+              <img src="https://ui-avatars.com/api/?name=A1&background=0D8ABC&color=fff" alt="F" class="w-full h-full object-cover">
+            </div>
+            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
+            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
+            <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
+              <i class="fab fa-instagram text-sm"></i> instagram
+            </a>
+          </div>
+          
+          <div class="glass-card rounded-xl p-5 text-center hover:-translate-y-2 transition-transform duration-300">
+            <div class="w-24 h-24 lg:w-36 lg:h-36 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400/50 mb-3 overflow-hidden">
+              <img src="https://ui-avatars.com/api/?name=A1&background=0D8ABC&color=fff" alt="F" class="w-full h-full object-cover">
+            </div>
+            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
+            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
+            <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
+              <i class="fab fa-instagram text-sm"></i> instagram
+            </a>
+          </div>
+
+          <div class="glass-card rounded-xl p-5 text-center hover:-translate-y-2 transition-transform duration-300">
+            <div class="w-24 h-24 lg:w-36 lg:h-36 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400/50 mb-3 overflow-hidden">
+              <img src="https://ui-avatars.com/api/?name=A1&background=0D8ABC&color=fff" alt="F" class="w-full h-full object-cover">
+            </div>
+            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
+            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
+            <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
+              <i class="fab fa-instagram text-sm"></i> instagram
+            </a>
+          </div>
+
+          <div class="glass-card rounded-xl p-5 text-center hover:-translate-y-2 transition-transform duration-300">
+            <div class="w-24 h-24 lg:w-36 lg:h-36 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400/50 mb-3 overflow-hidden">
+              <img src="https://ui-avatars.com/api/?name=A1&background=0D8ABC&color=fff" alt="F" class="w-full h-full object-cover">
+            </div>
+            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
+            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
+            <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
+              <i class="fab fa-instagram text-sm"></i> instagram
+            </a>
+          </div>
+
+          <div class="glass-card rounded-xl p-5 text-center hover:-translate-y-2 transition-transform duration-300">
+            <div class="w-24 h-24 lg:w-36 lg:h-36 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400/50 mb-3 overflow-hidden">
+              <img src="https://ui-avatars.com/api/?name=A1&background=0D8ABC&color=fff" alt="F" class="w-full h-full object-cover">
+            </div>
+            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
+            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
+            <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
+              <i class="fab fa-instagram text-sm"></i> instagram
+            </a>
+          </div>
+
+          <div class="glass-card rounded-xl p-5 text-center hover:-translate-y-2 transition-transform duration-300">
+            <div class="w-24 h-24 lg:w-36 lg:h-36 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400/50 mb-3 overflow-hidden">
+              <img src="https://ui-avatars.com/api/?name=A1&background=0D8ABC&color=fff" alt="F" class="w-full h-full object-cover">
+            </div>
+            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
+            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
+            <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
+              <i class="fab fa-instagram text-sm"></i> instagram
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="statistik" class="py-12 px-5 border-t border-blue-900/30">
+      <div class="container mx-auto max-w-6xl">
+        <h2 class="text-2xl font-bold mb-6 text-blue-300"><i class="fas fa-chart-pie text-blue-400 mr-1"></i> Statistik Dataset</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          
+          <div class="glass-card p-6 rounded-xl text-center flex flex-col justify-center min-h-[120px]">
+            <h3 class="text-sm text-gray-400 font-medium mb-1">Total Film</h3>
+            <p id="totalFilm" class="text-4xl font-bold text-white">-</p>
+          </div>
+          
+          <div class="glass-card p-6 rounded-xl text-center flex flex-col justify-center min-h-[120px]">
+            <h3 class="text-sm text-gray-400 font-medium mb-1">Total Genre Unik</h3>
+            <p id="totalGenre" class="text-4xl font-bold text-white">-</p>
+          </div>
+          
+          <div class="glass-card p-5 rounded-xl flex flex-col items-center">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4 bg-blue-900/30 px-3 py-1 rounded-full border border-blue-800/50">
+              <i class="fas fa-calendar-alt text-blue-400 mr-1"></i> Data 10 Tahun Terakhir
+            </h3>
+            <div class="w-full h-64 relative">
+                <canvas id="yearPieChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="glass-card p-5 rounded-xl flex flex-col items-center">
+            <h3 class="text-sm font-semibold text-gray-300 mb-4 bg-blue-900/30 px-3 py-1 rounded-full border border-blue-800/50">
+              <i class="fas fa-star text-blue-400 mr-1"></i> Top 10 Genre Teratas
+            </h3>
+            <div class="w-full h-64 relative">
+                <canvas id="genrePieChart"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+<footer class="relative bg-[#020812] border-t border-blue-900/40 pt-12 pb-8 px-5 overflow-hidden">
+
+  <!-- Decorative Glow -->
+  <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-blue-500/10 blur-[120px] rounded-full"></div>
+
+  <div class="container mx-auto max-w-6xl relative z-10">
+
+    <!-- Top Grid -->
+    <div class="grid md:grid-cols-3 gap-10 mb-10">
+
+      <!-- Brand -->
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <i class="fas fa-film text-blue-400 text-2xl"></i>
+          <span class="font-bold text-xl text-white">Sinoplix</span>
+        </div>
+
+        <p class="text-gray-400 text-sm leading-relaxed">
+          Sistem rekomendasi film berbasis AI yang membantu kamu menemukan film berdasarkan cerita yang kamu pikirkan.
+        </p>
+
+        <div class="flex gap-3 mt-4">
+          <a class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-900/40 hover:bg-blue-600 transition">
+            <i class="fab fa-github text-white text-sm"></i>
+          </a>
+          <a class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-900/40 hover:bg-blue-600 transition">
+            <i class="fab fa-instagram text-white text-sm"></i>
+          </a>
+          <a class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-900/40 hover:bg-blue-600 transition">
+            <i class="fab fa-linkedin text-white text-sm"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div>
+        <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-compass text-blue-400"></i> Navigasi
+        </h3>
+
+        <div class="flex flex-col gap-2 text-sm text-gray-400">
+          <a href="#home" class="hover:text-blue-400 transition">Beranda</a>
+          <a href="#rekomendasi" class="hover:text-blue-400 transition">Rekomendasi</a>
+          <a href="#tentang" class="hover:text-blue-400 transition">Tentang</a>
+          <a href="#tim" class="hover:text-blue-400 transition">Tim</a>
+          <a href="#statistik" class="hover:text-blue-400 transition">Statistik</a>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div>
+        <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-brain text-blue-400"></i> Sistem
+        </h3>
+
+        <div class="text-sm text-gray-400 space-y-2">
+          <p><i class="fas fa-check text-green-400 mr-2"></i> TF-IDF Vectorization</p>
+          <p><i class="fas fa-check text-green-400 mr-2"></i> Cosine Similarity</p>
+          <p><i class="fas fa-check text-green-400 mr-2"></i> Content-Based Filtering</p>
+          <p><i class="fas fa-check text-green-400 mr-2"></i> Real-time Recommendation</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Divider -->
+    <div class="border-t border-blue-900/40 pt-6 flex flex-col md:flex-row justify-between items-center gap-3">
+
+      <p class="text-gray-500 text-xs">
+        © 2026 Sinoplix • Dibuat oleh Kelompok 2
+      </p>
+
+      <p class="text-gray-600 text-xs flex items-center gap-2">
+        <i class="fas fa-code text-blue-400"></i>
+        Flask • Scikit-Learn • Tailwind • AI Recommendation
+      </p>
+
+    </div>
+
+  </div>
+</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // ==========================================
+      // LOGIKA MOBILE MENU
+      // ==========================================
+      const menuBtn = document.getElementById("menuBtn");
+      const menuIcon = document.getElementById("menuIcon");
+      const mobileMenu = document.getElementById("mobileMenu");
+      const mobileBackdrop = document.getElementById("mobileBackdrop");
+      const mobileLinks = document.querySelectorAll(".mobile-link");
+
+      function toggleMenu() {
+          const isHidden = mobileMenu.classList.contains("hidden");
+          
+          if (isHidden) {
+              mobileBackdrop.classList.remove("hidden");
+              mobileMenu.classList.remove("hidden");
+              setTimeout(() => {
+                  mobileBackdrop.classList.remove("opacity-0");
+                  mobileMenu.classList.remove("opacity-0", "scale-95");
+                  menuIcon.classList.remove("fa-bars");
+                  menuIcon.classList.add("fa-times", "rotate-90");
+              }, 10);
+          } else {
+              mobileBackdrop.classList.add("opacity-0");
+              mobileMenu.classList.add("opacity-0", "scale-95");
+              menuIcon.classList.remove("fa-times", "rotate-90");
+              menuIcon.classList.add("fa-bars");
+              setTimeout(() => {
+                  mobileBackdrop.classList.add("hidden");
+                  mobileMenu.classList.add("hidden");
+              }, 300);
+          }
+      }
+
+      menuBtn.addEventListener("click", toggleMenu);
+      mobileBackdrop.addEventListener("click", toggleMenu);
+      mobileLinks.forEach(link => {
+          link.addEventListener("click", toggleMenu);
+      });
+
+      // ==========================================
+      // STATS LOADER (PIE CHARTS)
+      // ==========================================
+      async function loadStats() {
+        try {
+            const res = await fetch('/stats');
+            const data = await res.json();
+            
+            // Set Total Angka
+            document.getElementById("totalFilm").innerText = data.total_film || "-";
+            document.getElementById("totalGenre").innerText = data.total_genre || "-";
+            
+            // 10 Palet Warna Elegan untuk Tema Gelap
+            const pieColors = [
+                'rgba(59, 130, 246, 0.85)',   // Blue 500
+                'rgba(147, 197, 253, 0.85)',  // Blue 300
+                'rgba(167, 139, 250, 0.85)',  // Purple 400
+                'rgba(45, 212, 191, 0.85)',   // Teal 400
+                'rgba(244, 114, 182, 0.85)',  // Pink 400
+                'rgba(250, 204, 21, 0.85)',   // Yellow 400
+                'rgba(251, 146, 60, 0.85)',   // Orange 400
+                'rgba(74, 222, 128, 0.85)',   // Green 400
+                'rgba(96, 165, 250, 0.85)',   // Blue 400
+                'rgba(129, 140, 248, 0.85)'   // Indigo 400
+            ];
+
+            // Setup Data 10 Tahun Terakhir
+            let yearObj = data.last_10_years;
+            if (!yearObj && data.last_5_years) { yearObj = data.last_5_years; } // fallback
+            if (!yearObj) { yearObj = {}; }
+            
+            const yearLabels = Object.keys(yearObj);
+            const yearValues = Object.values(yearObj);
+
+            // Setup Data Top 10 Genre
+            let genreObj = data.top_10_genre;
+            if (!genreObj && data.top_5_genre) { genreObj = data.top_5_genre; } // fallback
+            if (!genreObj && data.top_genre) {
+                // Slice manual 10 teratas jika backend belum diupdate
+                const sortedGenres = Object.entries(data.top_genre).sort((a, b) => b[1] - a[1]).slice(0, 10);
+                genreObj = Object.fromEntries(sortedGenres);
+            } else if (!genreObj) {
+                genreObj = {};
+            }
+            // pastikan urut berdasarkan jumlah (DESC)
+            const sortedGenres = Object.entries(genreObj)
+                .sort((a, b) => b[1] - a[1]); // urut berdasarkan jumlah film
+
+            const genreLabels = sortedGenres.map(item => item[0]);
+            const genreValues = sortedGenres.map(item => item[1]);
+
+            // Konfigurasi Chart.js Pie
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right', // Diubah ke kanan agar label 10 item lebih muat
+                        labels: { color: '#e5e7eb', padding: 10, font: { family: 'Inter', size: 11 } }
+                    }
+                }
+            };
+
+            // Render Pie Chart 1: 10 Tahun Terakhir
+            new Chart(document.getElementById('yearPieChart'), {
+                type: 'pie',
+                data: {
+                    labels: yearLabels.length ? yearLabels : ['Data Kosong'],
+                    datasets: [{
+                        data: yearValues.length ? yearValues : [1],
+                        backgroundColor: pieColors,
+                        borderWidth: 1,
+                        borderColor: '#0f1e32'
+                    }]
+                },
+                options: commonOptions
+            });
+
+            // Render Pie Chart 2: Top 10 Genre
+            new Chart(document.getElementById('genrePieChart'), {
+                type: 'pie',
+                data: {
+                    labels: genreLabels.length ? genreLabels : ['Data Kosong'],
+                    datasets: [{
+                        data: genreValues.length ? genreValues : [1],
+                        backgroundColor: pieColors,
+                        borderWidth: 1,
+                        borderColor: '#0f1e32'
+                    }]
+                },
+                options: commonOptions
+            });
+
+        } catch (error) { 
+            console.error("Gagal memuat statistik", error); 
+        }
+      }
+      loadStats();
+
+      // ==========================================
+      // REKOMENDASI & PAGINATION
+      // ==========================================
+      let allData = [];
+      let currentPage = 1;
+      const itemsPerPage = 9; 
+      const maxPageButtons = 8; 
+
+      const btnRecommend = document.getElementById("recommendBtn");
+      const loading = document.getElementById("loading");
+      const resultSection = document.getElementById("resultSection");
+      const sortDropdown = document.getElementById("sortDropdown");
+      const errorMsg = document.getElementById("errorMsg");
+      const pageNumbersDiv = document.getElementById("pageNumbers");
+
+      btnRecommend.addEventListener("click", async () => {
+        const synopsis = document.getElementById("synopsisInput").value.trim();
+        const genre = document.getElementById("genreInput").value.trim(); 
+        const year = document.getElementById("yearSelect").value;
+
+        if (!synopsis) return showError("Silakan tulis sinopsis terlebih dahulu.");
+
+        loading.classList.remove("hidden");
+        resultSection.classList.add("hidden");
+        errorMsg.classList.add("hidden");
+
+        try {
+          const res = await fetch("/recommend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ synopsis, genre, year })
+          });
+          
+          allData = await res.json();
+          if (!res.ok) throw new Error(allData.error || "Terjadi kesalahan sistem.");
+          if (!allData.length) throw new Error("Tidak ada film yang cocok dengan cerita/filter tersebut.");
+
+          document.getElementById("resultCount").innerText = `Menemukan ${allData.length} film yang relevan.`;
+          currentPage = 1;
+          sortAndRender();
+
+        } catch (err) {
+          showError(err.message);
+        } finally {
+          loading.classList.add("hidden");
+        }
+      });
+
+      sortDropdown.addEventListener("change", () => {
+        currentPage = 1; sortAndRender();
+      });
+
+      function sortAndRender() {
+        const criteria = sortDropdown.value; 
+        allData.sort((a, b) => b[criteria] - a[criteria]);
+        renderResults();
+      }
+
+      function renderResults() {
+        const list = document.getElementById("recommendationsList");
+        list.innerHTML = "";
+        resultSection.classList.remove("hidden");
+
+        const start = (currentPage - 1) * itemsPerPage;
+        const currentItems = allData.slice(start, start + itemsPerPage);
+
+        currentItems.forEach((movie) => {
+          const ratingDisplay = (movie.rate === 0 || movie.rate === null) 
+              ? '<span class="text-gray-400 text-xs italic font-medium">Belum ada rating</span>' 
+              : `<span class="text-yellow-400 text-sm font-semibold"><i class="fas fa-star mr-1"></i>${movie.rate.toFixed(1)}</span>`;
+
+          const card = document.createElement("div");
+          card.className = "movie-card rounded-xl overflow-hidden shadow-lg p-5 flex flex-col justify-between";
+          card.innerHTML = `
+            <div>
+              <div class="flex items-start gap-3 mb-3">
+                  <i class="fas fa-film text-blue-400 text-2xl mt-1"></i>
+                  <div class="flex-1">
+                      <h3 class="text-xl font-bold text-blue-200 mb-1 leading-tight">${movie.judul} <span class="text-sm text-gray-400 font-normal">(${movie.tahun})</span></h3>
+                      <p class="text-gray-400 text-xs"><i class="fas fa-tag mr-1"></i> ${movie.genre || "Tidak ada genre"}</p>
+                  </div>
+              </div>
+              <p class="text-gray-300 text-sm line-clamp-3 italic mb-4">"${movie.sinopsis}"</p>
+            </div>
+            <div class="border-t border-blue-900/50 pt-3 flex justify-between items-center">
+                ${ratingDisplay}
+                <span class="text-blue-300 text-xs font-medium bg-blue-900/30 px-2 py-1 rounded">Skor Kecocokan: ${(movie.final_score * 100).toFixed(1)}</span>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+        renderPaginationControls();
+      }
+
+      function renderPaginationControls() {
+        const totalPages = Math.ceil(allData.length / itemsPerPage);
+        const paginationControls = document.getElementById("paginationControls");
+        if (totalPages <= 1) { paginationControls.classList.add("hidden"); return; }
+        paginationControls.classList.remove("hidden");
+        pageNumbersDiv.innerHTML = "";
+        document.getElementById("btnPrev").disabled = currentPage === 1;
+        document.getElementById("btnNext").disabled = currentPage === totalPages;
+        const currentBlock = Math.ceil(currentPage / maxPageButtons); 
+        const startPage = (currentBlock - 1) * maxPageButtons + 1;
+        const endPage = Math.min(startPage + maxPageButtons - 1, totalPages);
+        for (let i = startPage; i <= endPage; i++) {
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.onclick = () => { currentPage = i; renderResults(); document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" }); };
+            pageNumbersDiv.appendChild(btn);
+        }
+      }
+
+      document.getElementById("btnPrev").onclick = () => { if (currentPage > 1) { currentPage--; renderResults(); document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" }); } };
+      document.getElementById("btnNext").onclick = () => { const totalPages = Math.ceil(allData.length / itemsPerPage); if (currentPage < totalPages) { currentPage++; renderResults(); document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" }); } };
+      function showError(msg) { errorMsg.innerText = msg; errorMsg.classList.remove("hidden"); resultSection.classList.add("hidden"); }
+    </script>
+  </body>
+</html>
