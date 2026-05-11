@@ -2,30 +2,15 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=yes"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
     <title>Sinoplix | Rekomendasi Film Indonesia Berdasarkan Sinopsis</title>
-    <meta
-      name="description"
-      content="Sistem rekomendasi film cerdas dengan TF-IDF dan Cosine Similarity"
-    />
+    <meta name="description" content="Sistem rekomendasi film cerdas dengan TF-IDF dan Cosine Similarity"/>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap" rel="stylesheet"/>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
     <style>
       * {
         font-family: "Inter", sans-serif;
@@ -78,7 +63,6 @@
       html {
         scroll-behavior: smooth;
       }
-
       .page-btn {
         padding: 8px 16px;
         border-radius: 6px;
@@ -128,175 +112,73 @@
       }
     </style>
   </head>
+
   <body class="text-gray-200">
-    <nav
-      class="fixed top-0 w-full z-50 bg-[#0a1929]/80 backdrop-blur-md border-b border-blue-800/40 shadow-sm"
-    >
-      <div
-        class="container mx-auto px-5 py-2 lg:py-4 flex justify-between items-center relative"
-      >
+    <nav class="fixed top-0 w-full z-50 bg-[#0a1929]/80 backdrop-blur-md border-b border-blue-800/40 shadow-sm">
+      <div class="container mx-auto px-5 py-2 lg:py-4 flex justify-between items-center relative">
         <div class="flex items-center space-x-2 z-50">
           <i class="fas fa-clapperboard text-blue-400 text-2xl"></i>
-          <span class="font-bold text-xl tracking-tight"
-            >Sino<span class="text-blue-400">plix</span></span
-          >
+          <span class="font-bold text-xl tracking-tight">Sino<span class="text-blue-400">plix</span></span>
         </div>
 
-        <div
-          class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-10 text-sm font-medium"
-        >
-          <a
-            href="#home"
-            class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"
-            ><i class="fas fa-house"></i>Beranda</a
-          >
-          <a
-            href="#rekomendasi"
-            class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"
-            ><i class="fas fa-wand-magic-sparkles"></i>Rekomendasi</a
-          >
-          <a
-            href="#tentang"
-            class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"
-            ><i class="fas fa-circle-info"></i>Tentang</a
-          >
-          <a
-            href="#tim"
-            class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"
-            ><i class="fas fa-users"></i>Tim</a
-          >
-          <a
-            href="#statistik"
-            class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"
-            ><i class="fas fa-chart-pie"></i>Statistik</a
-          >
+        <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-10 text-sm font-medium">
+          <a href="#home" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-house"></i>Beranda</a>
+          <a href="#rekomendasi" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-wand-magic-sparkles"></i>Rekomendasi</a>
+          <a href="#tentang" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-circle-info"></i>Tentang</a>
+          <a href="#tim" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-users"></i>Tim</a>
+          <a href="#statistik" class="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold"><i class="fas fa-chart-pie"></i>Statistik</a>
         </div>
 
         <div class="hidden md:block w-8"></div>
 
-        <button
-          id="menuBtn"
-          class="md:hidden text-white focus:outline-none z-50 relative p-2"
-        >
-          <i
-            class="fas fa-bars text-xl transition-all duration-300"
-            id="menuIcon"
-          ></i>
+        <button id="menuBtn" class="md:hidden text-white focus:outline-none z-50 relative p-2">
+          <i class="fas fa-bars text-xl transition-all duration-300" id="menuIcon"></i>
         </button>
       </div>
     </nav>
 
-    <div
-      id="mobileBackdrop"
-      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300"
-    ></div>
+    <div id="mobileBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300"></div>
 
-    <div
-      id="mobileMenu"
-      class="fixed top-20 right-5 w-56 bg-[#0f1e32]/95 backdrop-blur-xl border border-blue-500/30 rounded-2xl z-50 hidden flex-col py-2 shadow-2xl opacity-0 transition-all duration-300 scale-95 origin-top-right"
-    >
-      <a
-        href="#home"
-        class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"
-        ><i class="fas fa-house mb-1"></i>Beranda</a
-      >
-      <a
-        href="#rekomendasi"
-        class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"
-        ><i class="fas fa-brain mb-1"></i>Rekomendasi</a
-      >
-      <a
-        href="#tentang"
-        class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"
-        ><i class="fas fa-circle-info mb-1"></i>Tentang</a
-      >
-      <a
-        href="#tim"
-        class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"
-        ><i class="fas fa-users mb-1"></i>Tim</a
-      >
-      <a
-        href="#statistik"
-        class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 transition-all"
-        ><i class="fas fa-chart-pie mb-1"></i>Statistik</a
-      >
+    <div id="mobileMenu" class="fixed top-20 right-5 w-56 bg-[#0f1e32]/95 backdrop-blur-xl border border-blue-500/30 rounded-2xl z-50 hidden flex-col py-2 shadow-2xl opacity-0 transition-all duration-300 scale-95 origin-top-right">
+      <a href="#home" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-house mb-1"></i>Beranda</a>
+      <a href="#rekomendasi"class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-brain mb-1"></i>Rekomendasi</a>
+      <a href="#tentang" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-circle-info mb-1"></i>Tentang</a>
+      <a href="#tim" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-users mb-1"></i>Tim</a>
+      <a href="#statistik" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 transition-all"><i class="fas fa-chart-pie mb-1"></i>Statistik</a>
     </div>
 
     <section id="home" class="pt-28 md:pt-36 pb-16 md:pb-24 px-5">
       <div class="container mx-auto max-w-5xl text-center">
-        <div
-          class="inline-block px-4 py-1.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold mb-5 backdrop-blur-sm"
-        >
+        <div class="inline-block px-4 py-1.5 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold mb-5 backdrop-blur-sm">
           <i class="fas fa-robot mr-1"></i>Sistem Rekomendasi Film • Kelompok 2
         </div>
-        <h1
-          class="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-blue-300 via-white to-blue-400 bg-clip-text text-transparent leading-tight"
-        >
-          Temukan Film Indonesia<br />Berdasarkan Cerita yang Kamu Sukai
-        </h1>
-        <p
-          class="tagline text-gray-300 text-lg md:text-xl mt-6 max-w-2xl mx-auto"
-        >
-          "Setiap film punya cerita, setiap sinopsis punya makna. Temukan film
-          yang sejalan dengan duniamu"
-        </p>
+        <h1 class="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-blue-300 via-white to-blue-400 bg-clip-text text-transparent leading-tight">Temukan Film Indonesia<br/>Berdasarkan Cerita yang Kamu Sukai</h1>
+        <p class="tagline text-gray-300 text-lg md:text-xl mt-6 max-w-2xl mx-auto">"Setiap film punya cerita, setiap sinopsis punya makna. Temukan film yang sejalan dengan duniamu"</p>
+
         <div class="mt-9 flex flex-wrap justify-center gap-5">
-          <a
-            href="#rekomendasi"
-            class="btn-primary px-7 py-3 rounded-full font-semibold shadow-xl flex items-center gap-2"
-          >
-            <i class="fas fa-wand-magic-sparkles"></i> Coba Sekarang
-          </a>
-          <a
-            href="#tentang"
-            class="border border-blue-400/50 px-7 py-3 rounded-full font-semibold hover:bg-blue-500/10 transition"
-          >
-            Pelajari Algoritma
-          </a>
+          <a href="#rekomendasi" class="btn-primary px-7 py-3 rounded-full font-semibold shadow-xl flex items-center gap-2"><i class="fas fa-wand-magic-sparkles"></i> Coba Sekarang</a>
+          <a href="#tentang" class="border border-blue-400/50 px-7 py-3 rounded-full font-semibold hover:bg-blue-500/10 transition"> Pelajari Algoritma</a>
         </div>
       </div>
     </section>
 
-    <section
-      id="rekomendasi"
-      class="py-16 md:py-20 px-5 bg-black/10 backdrop-blur-sm border-t border-blue-900/30"
-    >
+    <section id="rekomendasi" class="py-16 md:py-20 px-5 bg-black/10 backdrop-blur-sm border-t border-blue-900/30">
       <div class="container mx-auto max-w-4xl">
         <div class="text-center mb-12">
-          <h2
-            class="text-3xl md:text-4xl font-bold inline-block border-b-4 border-blue-500 pb-2"
-          >
-            Rekomendasi Film
-          </h2>
-          <p class="text-gray-300 mt-4">
-            Isi sinopsis singkat, lalu ketik genre dan pilih tahun (opsional).
-          </p>
+          <h2 class="text-3xl md:text-4xl font-bold inline-block border-b-4 border-blue-500 pb-2">Rekomendasi Film</h2>
+          <p class="text-gray-300 mt-4"> Isi sinopsis singkat, lalu ketik genre dan pilih tahun (opsional).</p>
         </div>
 
         <div class="glass-card rounded-2xl p-6 md:p-8 shadow-xl mb-12">
           <div class="space-y-5">
             <div>
-              <label class="block text-sm font-medium text-blue-200 mb-2"
-                ><i class="fas fa-pen-fancy"></i> Sinopsis / Cerita</label
-              >
-              <textarea
-                id="synopsisInput"
-                rows="4"
-                class="w-full p-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Contoh: Seorang detektif cerdas menyelidiki kasus misterius di kota metropolitan..."
-              ></textarea>
+              <label class="block text-sm font-medium text-blue-200 mb-2"><i class="fas fa-pen-fancy"></i> Sinopsis / Cerita</label>
+              <textarea id="synopsisInput" rows="4" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Seorang detektif cerdas menyelidiki kasus misterius di kota metropolitan..."></textarea>
             </div>
             <div class="grid md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-blue-200 mb-2"
-                  ><i class="fas fa-tags"></i> Genre (Bisa Lebih dari 1)</label
-                >
-                <input
-                  type="text"
-                  id="genreInput"
-                  class="w-full p-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Contoh: Action, Drama, Comedy"
-                />
+                <label class="block text-sm font-medium text-blue-200 mb-2"><i class="fas fa-tags"></i> Genre (Bisa Lebih dari 1)</label>
+                <input type="text" id="genreInput" class="w-full p-3 rounded-xl bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Contoh: Action, Drama, Comedy"/>
               </div>
               <div>
                 <label class="block text-sm font-medium text-blue-200 mb-2"
@@ -984,43 +866,86 @@
         renderResults();
       }
 
-      function renderResults() {
-        const list = document.getElementById("recommendationsList");
-        list.innerHTML = "";
-        resultSection.classList.remove("hidden");
+function renderResults() {
+  const list = document.getElementById("recommendationsList");
 
-        const start = (currentPage - 1) * itemsPerPage;
-        const currentItems = allData.slice(start, start + itemsPerPage);
+  // RESPONSIVE GRID
+  list.className =
+    "grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5";
 
-        currentItems.forEach((movie) => {
-          const ratingDisplay =
-            movie.rate === 0 || movie.rate === null
-              ? '<span class="text-gray-400 text-xs italic font-medium">Belum ada rating</span>'
-              : `<span class="text-yellow-400 text-sm font-semibold"><i class="fas fa-star mr-1"></i>${movie.rate.toFixed(1)}</span>`;
+  list.innerHTML = "";
+  resultSection.classList.remove("hidden");
 
-          const card = document.createElement("div");
-          card.className =
-            "movie-card rounded-xl overflow-hidden shadow-lg p-5 flex flex-col justify-between";
-          card.innerHTML = `
-            <div>
-              <div class="flex items-start gap-3 mb-3">
-                  <i class="fas fa-film text-blue-400 text-2xl mt-1"></i>
-                  <div class="flex-1">
-                      <h3 class="text-xl font-bold text-blue-200 mb-1 leading-tight">${movie.judul} <span class="text-sm text-gray-400 font-normal">(${movie.tahun})</span></h3>
-                      <p class="text-gray-400 text-xs"><i class="fas fa-tag mr-1"></i> ${movie.genre || "Tidak ada genre"}</p>
-                  </div>
-              </div>
-              <p class="text-gray-300 text-sm line-clamp-3 italic mb-4">"${movie.sinopsis}"</p>
-            </div>
-            <div class="border-t border-blue-900/50 pt-3 flex justify-between items-center">
-                ${ratingDisplay}
-                <span class="text-blue-300 text-xs font-medium bg-blue-900/30 px-2 py-1 rounded">Skor Kecocokan: ${(movie.final_score * 100).toFixed(1)}</span>
-            </div>
-          `;
-          list.appendChild(card);
-        });
-        renderPaginationControls();
-      }
+  const start = (currentPage - 1) * itemsPerPage;
+  const currentItems = allData.slice(start, start + itemsPerPage);
+
+  currentItems.forEach((movie) => {
+    const ratingDisplay =
+      movie.rate === 0 || movie.rate === null
+        ? `<span class="text-gray-400 text-[10px] md:text-xs italic font-medium">
+            Belum ada rating
+          </span>`
+        : `<span class="text-yellow-400 text-[11px] md:text-sm font-semibold">
+            <i class="fas fa-star mr-1"></i>${movie.rate.toFixed(1)}
+          </span>`;
+
+    // HANDLE SINOPSIS KOSONG
+    const synopsisText =
+      movie.sinopsis &&
+      movie.sinopsis.trim() !== "" &&
+      movie.sinopsis.toLowerCase() !== "nan"
+        ? `"${movie.sinopsis}"`
+        : `<span class="italic text-gray-500">Tidak Ada Sinopsis</span>`;
+
+    const card = document.createElement("div");
+
+    card.className =
+      "movie-card rounded-xl md:rounded-2xl overflow-hidden shadow-lg p-3 md:p-5 flex flex-col justify-between min-h-[220px] md:min-h-[260px] transition duration-300 hover:scale-[1.02]";
+
+    card.innerHTML = `
+      <div>
+        <div class="flex items-start gap-2 md:gap-3 mb-3">
+          
+          <i class="fas fa-film text-blue-400 text-lg md:text-2xl mt-1 shrink-0"></i>
+
+          <div class="flex-1 min-w-0">
+            
+            <h3 class="text-sm md:text-xl font-bold text-blue-200 leading-tight break-words line-clamp-2">
+              ${movie.judul}
+              <span class="text-[10px] md:text-sm text-gray-400 font-normal">
+                (${movie.tahun || "-"})
+              </span>
+            </h3>
+
+            <p class="text-gray-400 text-[10px] md:text-xs mt-1 line-clamp-1">
+              <i class="fas fa-tag mr-1"></i>
+              ${movie.genre || "Tidak ada genre"}
+            </p>
+
+          </div>
+        </div>
+
+        <p class="text-gray-300 text-[11px] md:text-sm line-clamp-4 italic mb-4 break-words">
+          ${synopsisText}
+        </p>
+      </div>
+
+<div class="border-t border-blue-900/50 pt-2 md:pt-3 flex items-center justify-between gap-2">
+
+        ${ratingDisplay}
+
+        <span class="text-blue-300 text-[10px] md:text-xs font-medium bg-blue-900/30 px-2 py-1 rounded-lg text-center">
+          Skor Kemiripan ${(movie.final_score * 100).toFixed(1)}%
+        </span>
+
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+
+  renderPaginationControls();
+}
 
       function renderPaginationControls() {
         const totalPages = Math.ceil(allData.length / itemsPerPage);
