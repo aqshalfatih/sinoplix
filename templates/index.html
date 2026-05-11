@@ -115,10 +115,12 @@
 
   <body class="text-gray-200">
     <nav class="fixed top-0 w-full z-50 bg-[#0a1929]/80 backdrop-blur-md border-b border-blue-800/40 shadow-sm">
-      <div class="container mx-auto px-5 py-2 lg:py-4 flex justify-between items-center relative">
-        <div class="flex items-center space-x-2 z-50">
-          <i class="fas fa-clapperboard text-blue-400 text-2xl"></i>
-          <span class="font-bold text-xl tracking-tight">Sino<span class="text-blue-400">plix</span></span>
+      <div class="container mx-auto px-5 py-1 lg:py-2 flex justify-between items-center relative">
+        <div class="flex items-center space-x-1 z-50 py-1">
+          <img src="{{ url_for('static', filename='media/ICON.png') }}" alt="logo" class="w-6 h-6 lg:h-8 lg:w-8">
+          <span class="font-extrabold text-xl md:text-3xl tracking-tight">
+            Sino<span class="text-blue-400">plix</span>
+          </span>
         </div>
 
         <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 space-x-10 text-sm font-medium">
@@ -139,12 +141,12 @@
 
     <div id="mobileBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300"></div>
 
-    <div id="mobileMenu" class="fixed top-20 right-5 w-56 bg-[#0f1e32]/95 backdrop-blur-xl border border-blue-500/30 rounded-2xl z-50 hidden flex-col py-2 shadow-2xl opacity-0 transition-all duration-300 scale-95 origin-top-right">
-      <a href="#home" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-house mb-1"></i>Beranda</a>
-      <a href="#rekomendasi"class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-brain mb-1"></i>Rekomendasi</a>
-      <a href="#tentang" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-circle-info mb-1"></i>Tentang</a>
-      <a href="#tim" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-users mb-1"></i>Tim</a>
-      <a href="#statistik" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-3 px-5 transition-all"><i class="fas fa-chart-pie mb-1"></i>Statistik</a>
+    <div id="mobileMenu" class="fixed top-16 right-5 w-48 bg-[#0f1e32]/95 backdrop-blur-xl border border-blue-500/30 rounded-2xl z-50 hidden flex-col py-2 shadow-2xl opacity-0 transition-all duration-300 scale-95 origin-top-right">
+      <a href="#home" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-2 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-house mb-1"></i>Beranda</a>
+      <a href="#rekomendasi"class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-2 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-brain mb-1"></i>Rekomendasi</a>
+      <a href="#tentang" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-2 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-circle-info mb-1"></i>Tentang</a>
+      <a href="#tim" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-2 px-5 border-b border-blue-900/40 transition-all"><i class="fas fa-users mb-1"></i>Tim</a>
+      <a href="#statistik" class="mobile-link flex items-center gap-3 w-full text-left text-base font-medium text-gray-200 hover:text-blue-400 hover:bg-blue-900/30 py-2 px-5 transition-all"><i class="fas fa-chart-pie mb-1"></i>Statistik</a>
     </div>
 
     <section id="home" class="pt-28 md:pt-36 pb-16 md:pb-24 px-5">
