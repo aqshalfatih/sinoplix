@@ -84,6 +84,24 @@
       .tagline {
         font-family: 'Playfair Display', serif;
       }
+      @media (max-width: 640px) {
+  .page-btn {
+    padding: 6px 10px;
+    min-width: 32px;
+    font-size: 12px;
+  }
+
+  #paginationControls {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  #pageNumbers {
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
     </style>
   </head>
   <body class="text-gray-200">
@@ -273,8 +291,8 @@
             <div class="w-24 h-24 lg:w-36 lg:h-36 mx-auto rounded-full bg-blue-500/20 border-2 border-blue-400/50 mb-3 overflow-hidden">
               <img src="https://ui-avatars.com/api/?name=A1&background=0D8ABC&color=fff" alt="F" class="w-full h-full object-cover">
             </div>
-            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
-            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
+            <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Asyraf Zahirul Ubaid</h3>
+            <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2404127329</p>
             <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
               <i class="fab fa-instagram text-sm"></i> instagram
             </a>
@@ -286,7 +304,7 @@
             </div>
             <h3 class="font-bold text-blue-200 text-sm lg:text-lg">Aqshal Fatih Ardhani</h3>
             <p class="text-xs lg:text-sm text-gray-400 mb-2">NIM. 2403112762</p>
-            <a href="#" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
+            <a href="https://instagram.com/aqshalfth" target="_blank" class="text-blue-400 hover:text-blue-300 text-xs inline-flex items-center gap-1 font-bold">
               <i class="fab fa-instagram text-sm"></i> instagram
             </a>
           </div>
@@ -691,29 +709,64 @@
         renderPaginationControls();
       }
 
-      function renderPaginationControls() {
-        const totalPages = Math.ceil(allData.length / itemsPerPage);
-        const paginationControls = document.getElementById("paginationControls");
-        if (totalPages <= 1) { paginationControls.classList.add("hidden"); return; }
-        paginationControls.classList.remove("hidden");
-        pageNumbersDiv.innerHTML = "";
-        document.getElementById("btnPrev").disabled = currentPage === 1;
-        document.getElementById("btnNext").disabled = currentPage === totalPages;
-        const currentBlock = Math.ceil(currentPage / maxPageButtons); 
-        const startPage = (currentBlock - 1) * maxPageButtons + 1;
-        const endPage = Math.min(startPage + maxPageButtons - 1, totalPages);
-        for (let i = startPage; i <= endPage; i++) {
-            const btn = document.createElement("button");
-            btn.innerText = i;
-            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-            btn.onclick = () => { currentPage = i; renderResults(); document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" }); };
-            pageNumbersDiv.appendChild(btn);
-        }
-      }
+function renderPaginationControls() {
+  const totalPages = Math.ceil(allData.length / itemsPerPage);
+  const paginationControls = document.getElementById("paginationControls");
 
-      document.getElementById("btnPrev").onclick = () => { if (currentPage > 1) { currentPage--; renderResults(); document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" }); } };
-      document.getElementById("btnNext").onclick = () => { const totalPages = Math.ceil(allData.length / itemsPerPage); if (currentPage < totalPages) { currentPage++; renderResults(); document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" }); } };
-      function showError(msg) { errorMsg.innerText = msg; errorMsg.classList.remove("hidden"); resultSection.classList.add("hidden"); }
+  if (totalPages <= 1) {
+    paginationControls.classList.add("hidden");
+    return;
+  }
+
+  paginationControls.classList.remove("hidden");
+
+  const pageNumbersDiv = document.getElementById("pageNumbers");
+  pageNumbersDiv.innerHTML = "";
+
+  document.getElementById("btnPrev").disabled = currentPage === 1;
+  document.getElementById("btnNext").disabled = currentPage === totalPages;
+
+  const maxVisible = 5;
+
+  let start = Math.max(1, currentPage - 2);
+  let end = start + maxVisible - 1;
+
+  if (end > totalPages) {
+    end = totalPages;
+    start = Math.max(1, end - maxVisible + 1);
+  }
+
+  // 🔹 Jika ada gap di kiri → tampilkan "..."
+  if (start > 1) {
+    const dots = document.createElement("span");
+    dots.innerText = "...";
+    dots.className = "text-gray-400 px-2";
+    pageNumbersDiv.appendChild(dots);
+  }
+
+  // 🔹 Render halaman (maks 5)
+  for (let i = start; i <= end; i++) {
+    const btn = document.createElement("button");
+    btn.innerText = i;
+    btn.className = `page-btn ${i === currentPage ? "active" : ""}`;
+
+    btn.onclick = () => {
+      currentPage = i;
+      renderResults();
+      document.getElementById("resultSection").scrollIntoView({ behavior: "smooth" });
+    };
+
+    pageNumbersDiv.appendChild(btn);
+  }
+
+  // 🔹 Jika ada gap di kanan → tampilkan "..."
+  if (end < totalPages) {
+    const dots = document.createElement("span");
+    dots.innerText = "...";
+    dots.className = "text-gray-400 px-2";
+    pageNumbersDiv.appendChild(dots);
+  }
+}
     </script>
   </body>
 </html>
